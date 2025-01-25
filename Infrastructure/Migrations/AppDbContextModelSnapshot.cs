@@ -44,7 +44,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("IdAula");
 
-                    b.ToTable("Aula");
+                    b.ToTable("Aula", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Colaborador", b =>
@@ -68,7 +68,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("IdColaborador");
 
-                    b.ToTable("Colaborador");
+                    b.ToTable("Colaborador", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Horario", b =>
@@ -97,7 +97,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("IdAula");
 
-                    b.ToTable("Horario");
+                    b.ToTable("Horario", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Inscricao", b =>
@@ -149,7 +149,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("IdHorario");
 
-                    b.ToTable("Inscricao");
+                    b.ToTable("Inscricao", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Horario", b =>
