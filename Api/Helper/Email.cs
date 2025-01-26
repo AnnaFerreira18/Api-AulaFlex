@@ -1,4 +1,7 @@
-﻿namespace Api.Helper
+﻿using System.Net.Mail;
+using System.Net;
+
+namespace Api.Helper
 {
     public static class Email
     {
@@ -12,56 +15,55 @@
         /// <param name="emailDestinoComCopia">Destinatários que receberão a mensagem como cópia</param>
         /// <param name="emailDestinoComCopiaOculta">Destinatários que receberão a mensagem como cópia oculta</param>
         /// <returns></returns>
-        public static bool Enviar(IEnumerable<string> emailDestino, string assunto, string corpo, IEnumerable<string> emailDestinoComCopia = null, IEnumerable<string> emailDestinoComCopiaOculta = null)
+        public static bool Enviar(IEnumerable<string> destinatarios, string assunto, string corpo)
         {
             try
             {
-                var objRequest = new EmailModel()
+                // Configuração do servidor SMTP (Aqui você pode usar o servidor da sua escolha)
+                var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
-                    tema = 0,
-                    enderecoRemetente = "nao-responder@mkt.sestsenat.org.br",
-                    assunto = assunto,
-                    corpo = corpo,
-                    enderecosDestino = new List<string>(),
-                    enderecosDestinoComCopia = new List<string>(),
-                    enderecosDestinoComCopiaOculta = new List<string>()
+                    Port = 587,
+                    Credentials = new NetworkCredential("testesombria@gmail.com", "tdrh tber eitc qsts"), // Use o seu e-mail e senha
+                    EnableSsl = true
                 };
 
-
-                foreach (var email in emailDestino)
+                // Montagem do e-mail
+                var mensagem = new MailMessage
                 {
-                    objRequest.enderecosDestino.Add(email);
+                    From = new MailAddress("nao-responder@dominio.com"), // E-mail do remetente
+                    Subject = assunto,
+                    Body = corpo,
+                    IsBodyHtml = true // Se o corpo do e-mail for em HTML
+                };
+
+                // Adicionar destinatários
+                foreach (var email in destinatarios)
+                {
+                    mensagem.To.Add(email);
                 }
 
-                // Para destinatários que irão receber o email como cópia
-                if (emailDestinoComCopia != null)
+                try
                 {
-                    foreach (var emailCc in emailDestinoComCopia)
-                    {
-                        objRequest.enderecosDestinoComCopia.Add(emailCc);
-                    }
+                    smtpClient.Send(mensagem);
+                }
+                catch (SmtpException smtpEx)
+                {
+                    Console.WriteLine($"Erro SMTP: {smtpEx.Message}");
+                    Console.WriteLine($"Detalhes: {smtpEx.InnerException?.Message}");
+                    return false;
                 }
 
-                // Para destinatários que irão receber o email como cópia oculta
-                if (emailDestinoComCopiaOculta != null)
-                {
-                    foreach (var emailBcc in emailDestinoComCopiaOculta)
-                    {
-                        objRequest.enderecosDestinoComCopiaOculta.Add(emailBcc);
-                    }
-                }
-
-                //string urlBase = ConfigurationManager.AppSettings["UrlSestSenatService"];
-                //var response = Task.Run(async () => await RequestApiSestSenat.PostData(urlBase, "envioMensagens/envioEmail", objRequest)).GetAwaiter().GetResult();
-                //string content = Task.Run(async () => await response.Content.ReadAsStringAsync()).GetAwaiter().GetResult();
 
                 return true;
             }
             catch (Exception ex)
             {
+                // Log do erro (ex.Message) pode ser útil para diagnóstico
+                Console.WriteLine($"Erro ao enviar e-mail: {ex.Message}");
                 return false;
             }
         }
+
     }
 
     internal class EmailModel

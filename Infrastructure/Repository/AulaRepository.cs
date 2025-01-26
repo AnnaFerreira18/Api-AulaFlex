@@ -38,7 +38,7 @@ namespace Infrastructure.Repository
                 {
                     var query = @"
                                 UPDATE Aula
-                                SET Nome = @Nome, Descricao = @Descricao
+                                SET Nome = @Nome, Descricao = @Descricao, Categoria = @Categoria
                                 WHERE IdAula = @IdAula;
                             ";
 
@@ -79,30 +79,45 @@ namespace Infrastructure.Repository
             }
         }
 
+        //public bool Inserir(AulaCommand aula)
+        //{
+        //    try
+        //    {
+        //        using (var db = OpenConnection())
+        //        {
+        //            var query = @"
+        //                        INSERT INTO Aula (IdAula, Nome, Descricao)
+        //                        VALUES (@IdAula, @Nome, @Descricao);
+        //                    ";
+
+        //            db.Execute(query, new
+        //            {
+        //                IdAula = entity.IdAula,
+        //                Nome = entity.Nome,
+        //                Descricao = entity.Descricao
+        //            });
+
+        //            return true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception("Erro ao inserir a aula.", ex);
+        //    }
+        //}
+
         public bool Inserir(Aula entity)
         {
             try
             {
-                using (var db = OpenConnection())
-                {
-                    var query = @"
-                                INSERT INTO Aula (IdAula, Nome, Descricao)
-                                VALUES (@IdAula, @Nome, @Descricao);
-                            ";
+                var retorno = _contexto.Aula.Add(entity);
+                _contexto.SaveChanges();
 
-                    db.Execute(query, new
-                    {
-                        IdAula = entity.IdAula,
-                        Nome = entity.Nome,
-                        Descricao = entity.Descricao
-                    });
-
-                    return true;
-                }
+                return true;
             }
             catch (Exception ex)
             {
-                throw new Exception("Erro ao inserir a aula.", ex);
+                throw new Exception("Erro ao inserir Idioma: " + ex.Message, ex);
             }
         }
 
@@ -144,7 +159,7 @@ namespace Infrastructure.Repository
                 using (var db = OpenConnection())
                 {
                     var query = @"
-                    SELECT Nome, Categoria, Descricao 
+                    SELECT IdAula, Nome, Categoria, Descricao 
                     FROM Aula;
                 ";
 

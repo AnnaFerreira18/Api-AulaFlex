@@ -6,13 +6,9 @@ using System.Threading.Tasks;
 
 namespace ApplicationService.Commands
 {
-    public class ColaboradorCommand
+    public class LoginOuSenhaCommand
     {
-        public Guid IdColaborador { get; set; }
-        public string Nome { get; set; }
-        public string Email { get; set; }
-
+        public string Email {  get; set; }
         public string Senha { get; set; }
-
     }
 }

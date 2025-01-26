@@ -79,32 +79,19 @@ namespace Infrastructure.Repository
             }
         }
 
+
         public bool Inserir(Horario entity)
         {
             try
             {
-                using (var db = OpenConnection())
-                {
-                    var query = @"
-                                INSERT INTO Horario (IdHorario, DiaSemana, Hora, VagasDisponiveis, IdAula)
-                                VALUES (@IdHorario, @DiaSemana, @Hora, @VagasDisponiveis, @IdAula);
-                            ";
+                var retorno = _contexto.Horario.Add(entity);
+                _contexto.SaveChanges();
 
-                    db.Execute(query, new
-                    {
-                        IdHorario = Guid.NewGuid(),
-                        DiaSemana = entity.DiaSemana,
-                        Hora = entity.Hora,
-                        VagasDisponiveis = entity.VagasDisponiveis,
-                        IdAula = entity.IdAula 
-                    });
-
-                    return true;
-                }
+                return true;
             }
             catch (Exception ex)
             {
-                throw new Exception("Erro ao inserir o horário.", ex);
+                throw new Exception("Erro ao inserir Idioma: " + ex.Message, ex);
             }
         }
 
@@ -139,22 +126,23 @@ namespace Infrastructure.Repository
             throw new NotImplementedException();
         }
 
-       public IEnumerable<dynamic> ListarHorariosPorAula(Guid horarioId)
+       public IEnumerable<dynamic> ListarHorariosPorAula(Guid aulaId)
     {
             try
             {
                 using (var db = OpenConnection())
                 {
                     var query = @"
-                    SELECT H.DiaSemana, H.Hora, H.VagasDisponiveis
+                    SELECT H.DiaSemana, H.Hora, H.VagasDisponiveis,H.IdHorario
                     FROM Horario H
                     JOIN Aula A ON H.IdAula = A.IdAula
-                    WHERE IdHorario = @IdHorario;
-                ";
+                    WHERE H.IdAula = @IdAula;
+                    ";
 
-                    return db.Query(query, new { IdHorario = horarioId });
+                    return db.Query(query, new { IdAula = aulaId });
                 }
             }
+
             catch (Exception ex)
             {
                 throw new Exception("Erro ao listar horários da aula.", ex);

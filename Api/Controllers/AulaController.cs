@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using ApplicationService.Commands;
+using Azure.Core;
 using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Transaction;
@@ -16,7 +17,7 @@ namespace Api.Controllers
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        
+
 
         [HttpGet]
         [Route("ListarAula")]
@@ -37,20 +38,29 @@ namespace Api.Controllers
 
         [HttpPost]
         [Route("criarAula")]
-        public HttpResponseMessage CriarAula([FromBody] Aula aula)
+        public HttpResponseMessage CriarAula([FromBody] AulaCommand aula)
         {
-            //if (aula == null)
-            //{
-            //    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Os dados da aula não podem ser nulos." });
-            //}
+            if (aula == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Os dados da aula não podem ser nulos." });
+            }
 
             try
             {
-                var sucesso = _repository.Inserir(aula);
+                // Mapeamento de AulaCommand para Aula
+                var aulaEntity = new Aula
+                {
+                    IdAula = aula.IdAula,
+                    Nome = aula.Nome,
+                    Descricao = aula.Descricao,
+                    Categoria = aula.Categoria
+                };
+
+                var sucesso = _repository.Inserir(aulaEntity);
 
                 if (sucesso)
                 {
-                    return Request.CreateResponse(HttpStatusCode.Created, new { message = "Aula criada com sucesso." });
+                    //return Request.CreateResponse(HttpStatusCode.Created, new { message = "Aula criada com sucesso." });
                 }
 
                 return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao criar aula." });
@@ -61,9 +71,10 @@ namespace Api.Controllers
             }
         }
 
+
         [HttpPut]
         [Route("AtualizarAula")]
-        public HttpResponseMessage AtualizarAula(Guid aulaId, [FromBody] Aula aula)
+        public HttpResponseMessage AtualizarAula(Guid aulaId, [FromBody] AulaCommand aula)
         {
             if (aula == null)
             {
@@ -72,8 +83,15 @@ namespace Api.Controllers
 
             try
             {
-                aula.IdAula = aulaId;
-                var sucesso = _repository.Atualizar(aula);
+                var aulaEntity = new Aula
+                {
+                    IdAula = aulaId,
+                    Nome = aula.Nome,
+                    Descricao = aula.Descricao,
+                    Categoria = aula.Categoria
+                };
+
+                var sucesso = _repository.Atualizar(aulaEntity);
 
                 if (sucesso)
                 {
@@ -87,6 +105,7 @@ namespace Api.Controllers
                 return Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Erro interno no servidor.", detalhe = ex.Message });
             }
         }
+
 
 
 

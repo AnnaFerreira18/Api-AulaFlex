@@ -9,7 +9,7 @@ namespace Domain.Repositories
 {
     public interface IHorario : IBaseRepository<Horario>
     {
-        IEnumerable<dynamic> ListarHorariosPorAula(Guid horarioId);
+        IEnumerable<dynamic> ListarHorariosPorAula(Guid aulaId);
 
         IEnumerable<dynamic> ListarHorariosDisponiveis();
     }

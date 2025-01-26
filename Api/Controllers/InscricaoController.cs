@@ -53,7 +53,18 @@ namespace Api.Controllers
 
                 try
                 {
-                var sucesso = _repository.InscreverColaborador(command.IdColaborador, command.IdAula, command.IdHorario);
+
+                    var inscricao = new Inscricao
+                    {
+                        IdColaborador = command.IdColaborador,
+                        IdAula = command.IdAula,
+                        IdHorario = command.IdHorario,
+                        IdInscricao = command.IdInscricao,
+                        DataInicio = command.DataInicio,
+                        DataFim = command.DataFim,
+                        Status = command.Status
+                    };
+                var sucesso = _repository.Inserir(inscricao);
 
 
                 if (sucesso)

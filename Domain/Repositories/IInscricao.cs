@@ -15,7 +15,7 @@ namespace Domain.Repositories
 
         IEnumerable<dynamic> TotalInscricoesPorCategoria();
 
-        bool InscreverColaborador(Guid idColaborador, Guid idAula, Guid idHorario);
+        //public bool InscreverColaborador(Inscricao inscricao);
 
 
         bool CancelarInscricao(Guid inscricaoId);

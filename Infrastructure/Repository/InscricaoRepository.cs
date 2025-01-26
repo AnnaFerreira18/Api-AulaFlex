@@ -38,11 +38,6 @@ namespace Infrastructure.Repository
             throw new NotImplementedException();
         }
 
-        public bool Inserir(Inscricao entity)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<Inscricao> ListarTodos()
         {
             throw new NotImplementedException();
@@ -130,64 +125,22 @@ namespace Infrastructure.Repository
             }
         }
 
-        public bool InscreverColaborador(Guid idColaborador, Guid idAula, Guid idHorario)
+        public bool Inserir(Inscricao entity)
         {
             try
             {
-                using (var db = OpenConnection())
-                {
-                    // Verifica se o colaborador já está inscrito
-                    var queryVerificar = @"
-    SELECT 1 
-    FROM Inscricao i
-    WHERE i.IdColaborador = @IdColaborador 
-    AND i.IdAula = @IdAula 
-    AND i.IdHorario = @IdHorario 
-    AND i.Status = 'Ativa';";
+                var retorno = _contexto.Inscricao.Add(entity);
+                _contexto.SaveChanges();
 
-                    var existeInscricao = db.Query<int>(queryVerificar,
-                        new { IdColaborador = idColaborador, IdAula = idAula, IdHorario = idHorario }).Any();
-
-                    if (existeInscricao)
-                    {
-                        return false; // Colaborador já está inscrito nessa aula e horário
-                    }
-
-                    // Verifica a disponibilidade do horário
-                    var queryDisponibilidade = @"
-    SELECT COUNT(*) 
-    FROM Inscricao i
-    WHERE i.IdHorario = @IdHorario AND i.Status = 'Ativa';";
-
-                    var vagasOcupadas = db.Query<int>(queryDisponibilidade, new { IdHorario = idHorario }).FirstOrDefault();
-
-                    var queryVagasDisponiveis = @"
-    SELECT VagasDisponiveis
-    FROM Horario h
-    WHERE h.IdHorario = @IdHorario;";
-
-                    var vagasDisponiveis = db.Query<int>(queryVagasDisponiveis, new { IdHorario = idHorario }).FirstOrDefault();
-
-                    if (vagasOcupadas >= vagasDisponiveis)
-                    {
-                        return false; // Não há vagas disponíveis para o horário
-                    }
-
-                    // Se tudo estiver ok, inscreve o colaborador
-                    var queryInserir = @"
-    INSERT INTO Inscricao (IdColaborador, IdAula, IdHorario, DataInicio, Status)
-    VALUES (@IdColaborador, @IdAula, @IdHorario, GETDATE(), 'Ativa');";
-
-                    db.Execute(queryInserir, new { IdColaborador = idColaborador, IdAula = idAula, IdHorario = idHorario });
-
-                    return true; // Inscrição realizada com sucesso
-                }
+                return true;
             }
             catch (Exception ex)
             {
-                throw new Exception("Erro ao inscrever colaborador na aula.", ex);
+                throw new Exception("Erro ao inserir Idioma: " + ex.Message, ex);
             }
         }
+
+
 
 
 
@@ -201,9 +154,9 @@ namespace Infrastructure.Repository
                     var query = $@"
                     UPDATE Inscricao
                     SET Status = 'Cancelada', DataFim = GETDATE()
-                    WHERE IdInscricao = @InscricaoId AND Status = 'Ativa';";
+                    WHERE IdInscricao = @IdInscricao AND Status = 'Ativa';";
 
-                    var resultado = db.Execute(query, new { InscricaoId = inscricaoId });
+                    var resultado = db.Execute(query, new { IdInscricao = inscricaoId });
 
                     return resultado > 0; // Retorna verdadeiro se a inscrição foi cancelada
                 }

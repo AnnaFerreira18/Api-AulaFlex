@@ -303,7 +303,23 @@ namespace Infrastructure.Repository
 
         public bool Excluir(object id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (var db = OpenConnection())
+                {
+                    var query = @"
+                                DELETE FROM Colaborador
+                                WHERE IdColaborador = @IdColaborador; 
+                            ";
+
+                    db.Execute(query, new { IdColaborador = id });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao excluir o horário.", ex);
+            }
         }
 
         public IEnumerable<QueryListarColaboradores> ListarTodosColaboradores()

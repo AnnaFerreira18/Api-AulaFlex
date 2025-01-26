@@ -4,6 +4,8 @@ using Infrastructure.Transaction;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Web.Http.Description;
+using ApplicationService.Commands;
+using System.Security.Claims;
 
 namespace Api.Controllers
 {
@@ -19,9 +21,9 @@ namespace Api.Controllers
         [HttpGet]
         [Route("aula/")]
         [ResponseType(typeof(IEnumerable<dynamic>))]
-        public IEnumerable<dynamic> ListarHorariosPorAula(Guid horarioId)
+        public IEnumerable<dynamic> ListarHorariosPorAula(Guid aulaId)
         {
-            return _repository.ListarHorariosPorAula(horarioId);
+            return _repository.ListarHorariosPorAula(aulaId);
         }
 
         //[HttpGet]
@@ -34,7 +36,7 @@ namespace Api.Controllers
 
         [HttpPost]
         [Route("criarHorario")]
-        public HttpResponseMessage CriarHorario([FromBody] Horario horario)
+        public HttpResponseMessage CriarHorario([FromBody] HorarioCommand horario)
         {
             if (horario == null)
             {
@@ -43,7 +45,17 @@ namespace Api.Controllers
 
             try
             {
-                var sucesso = _repository.Inserir(horario);
+                // Mapeamento de HorarioCommand para Horario
+                var horarioEntity = new Horario
+                {
+                    IdHorario = horario.IdHorario, // Gera um novo Guid caso seja necessário
+                    DiaSemana = horario.DiaSemana,
+                    Hora = horario.Hora,
+                    VagasDisponiveis = horario.VagasDisponiveis,
+                    IdAula = horario.IdAula
+                };
+
+                var sucesso = _repository.Inserir(horarioEntity);
 
                 if (sucesso)
                 {
@@ -59,10 +71,9 @@ namespace Api.Controllers
         }
 
 
-
         [HttpPut]
         [Route("AtualizarHorario")]
-        public HttpResponseMessage AtualizarHorario(Guid horarioId, [FromBody] Horario horario)
+        public HttpResponseMessage AtualizarHorario(Guid horarioId, [FromBody] HorarioCommand horario)
         {
             if (horario == null)
             {
@@ -71,15 +82,26 @@ namespace Api.Controllers
 
             try
             {
-                horario.IdHorario = horarioId; 
-                var sucesso = _repository.Atualizar(horario);
+               
+                // Mapeamento de HorarioCommand para Horario (entidade do domínio)
+                var horarioEntity = new Horario
+                {
+                    IdHorario = horarioId, // Usa o ID fornecido na rota
+                    DiaSemana = horario.DiaSemana,
+                    Hora = horario.Hora,
+                    VagasDisponiveis = horario.VagasDisponiveis,
+                    IdAula = horario.IdAula
+                };
+
+                // Atualiza o horário no repositório
+                var sucesso = _repository.Atualizar(horarioEntity);
 
                 if (sucesso)
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, new { message = "Horário atualizado com sucesso." });
                 }
 
-                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao atualizar horário. Verifique os dados fornecidos." });
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao atualizar o horário. Verifique os dados fornecidos." });
             }
             catch (Exception ex)
             {
@@ -88,10 +110,12 @@ namespace Api.Controllers
         }
 
 
+
+
         [HttpDelete]
         [Route("{horarioId}")]
         [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> ExcluirHorario(int horarioId)
+        public Task<HttpResponseMessage> ExcluirHorario(Guid horarioId)
         {
             if (_repository.Excluir(horarioId))
             {

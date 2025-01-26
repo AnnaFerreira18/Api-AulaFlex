@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
 using System.Web.Http.Description;
+using ApplicationService.Commands;
 
 namespace Api.Controllers
 {
@@ -16,13 +17,14 @@ namespace Api.Controllers
         public ColaboradoresController(IUnitOfWork uow, IColaborador repository, IConfiguration configuration) : base(uow)
         {
             _configuration = configuration;
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         private readonly IConfiguration _configuration;
 
 
         [HttpGet]
-        [Route("api/v1/candidato/checarEmailDuplicado/{email}")]
+        [Route("checarEmailDuplicado/{email}")]
         [ResponseType(typeof(bool))]
         public bool ChecarEmailDuplicado(string email)
         {
@@ -31,8 +33,8 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        [Route("api/v1/candidato")]
-        [ResponseType(typeof(IEnumerable<QueryListarColaboradores>))]
+        [Route("candidato")]
+        [ResponseType(typeof(IEnumerable<Colaborador>))]
         public IEnumerable<QueryListarColaboradores> Listar()
         {
             return _repository.ListarTodosColaboradores();
@@ -41,28 +43,38 @@ namespace Api.Controllers
         [HttpPost]
         [Route("api/v2/colaborador")]
         [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> PostColaborador([FromBody] Colaborador command)
+        public Task<HttpResponseMessage> PostColaborador([FromBody] ColaboradorCommand command)
         {
             var statusEmail = false;
 
             try
             {
                 // Validação de entrada
-                if (string.IsNullOrWhiteSpace(command.Email))
+                if (command == null || string.IsNullOrWhiteSpace(command.Email))
                 {
                     return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "E-mail é obrigatório." }));
                 }
 
-                var colaboradorCriado = _repository.Inserir(command); // Simule o método de adição no repositório
+                // Mapeamento de ColaboradorCommand para Colaborador
+                var colaborador = new Colaborador
+                {
+                    IdColaborador = command.IdColaborador, 
+                    Nome = command.Nome,
+                    Email = command.Email,
+                    Senha = Criptografia.EncriptarSha1(command.Senha)
+                };
+
+                // Inserção do colaborador
+                var colaboradorCriado = _repository.Inserir(colaborador);
 
                 if (colaboradorCriado)
                 {
-                    var chave = Criptografia.EncriptarSha1($"{command.Email.Trim()}");
+                    var chave = Criptografia.EncriptarSha1(command.Email.Trim());
                     var assunto = "[SEST SENAT][Sistema Emprega Transporte] Confirmação de cadastro";
                     var urlApp = _configuration["BaseUrlApp"];
                     var link = $"{urlApp}/colaborador/confirmar-cadastro/{command.Email}/{chave}";
                     var textoEmail = $@"<p>Confirme seu cadastro no Emprega Transporte através do link abaixo:</p>
-                                        <p><a href=""{link}"">{link}</a></p>";
+                                <p><a href=""{link}"">{link}</a></p>";
 
                     IEnumerable<string> emails = new[] { command.Email };
 
@@ -81,19 +93,18 @@ namespace Api.Controllers
             }
         }
 
+
         [HttpPost]
         [Route("api/v2/colaborador/reenviarEmail")]
         [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> ReenviarEmailColaborador([FromBody] QueryListarColaboradores command)
+        public Task<HttpResponseMessage> ReenviarEmailColaborador([FromBody] ColaboradorCommand command)
         {
-            var statusEmail = false;
-
             try
             {
                 // Validar entrada
                 if (string.IsNullOrWhiteSpace(command.Email))
                 {
-                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "E-mail são obrigatórios." }));
+                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "E-mail é obrigatório." }));
                 }
 
                 var chave = Criptografia.EncriptarSha1($"{command.Email.Trim()}");
@@ -103,27 +114,30 @@ namespace Api.Controllers
                 var urlApp = _configuration["BaseUrlApp"];
                 var link = $"{urlApp}/colaborador/confirmar-cadastro/{command.Email}/{chave}";
                 var textoEmail = $@"<p>Confirme seu cadastro no Emprega Transporte através do link abaixo:</p>
-                                <p><a href=""{link}"">{link}</a></p>";
+                            <p><a href=""{link}"">{link}</a></p>";
 
+                // Criando lista de e-mails com o e-mail do comando
                 IEnumerable<string> emails = new[] { command.Email };
 
                 // Enviar e-mail
-                if (Email.Enviar(emails, assunto, textoEmail))
-                    statusEmail = true;
+                bool statusEmail = Email.Enviar(emails, assunto, textoEmail);
 
+                // Retornar resposta
                 return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new { message = "E-mail enviado com sucesso.", statusEmail }));
             }
             catch (Exception ex)
             {
+                // Tratar erro e retornar resposta adequada
                 return Task.FromResult(Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Erro interno no servidor.", details = ex.Message }));
             }
         }
 
 
+
         [HttpPut]
         [Route("api/v2/colaborador/alterarSenha")]
         [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> AlterarSenhaColaborador([FromBody] Colaborador command)
+        public Task<HttpResponseMessage> AlterarSenhaColaborador([FromBody] LoginOuSenhaCommand command)
         {
             try
             {
@@ -152,21 +166,10 @@ namespace Api.Controllers
         [HttpPost]
         [Route("api/v1/candidato/login")]
         [ResponseType(typeof(Colaborador))]
-        public Colaborador PostLogin([FromBody] Colaborador command)
+        public Colaborador PostLogin([FromBody] LoginOuSenhaCommand command)
         {
             return _repository.RealizarLoginComEmail(command.Email, command.Senha);
         }
-
-        //[HttpPut]
-        //[Route("api/v2/candidato/alterarSenha")]
-        //[ResponseType(typeof(Task<HttpResponseMessage>))]
-        //public Task<HttpResponseMessage> AlterarSenhaV2([FromBody] CandidatoAlterarSenhaCommand command)
-        //{
-        //    var service = new CandidatoAlterarSenhaService(command, _repository);
-        //    service.Run();
-
-        //    return ReturnResponse(service, new { message = "Senha alterada com sucesso." }, null);
-        //}
 
 
         [HttpGet]
@@ -175,6 +178,19 @@ namespace Api.Controllers
         public int GetTotalItens()
         {
             return _repository.TotalDeItens();
+        }
+
+        [HttpDelete]
+        [Route("ExcluirColaborador")]
+        [ResponseType(typeof(HttpResponseMessage))]
+        public Task<HttpResponseMessage> ExcluirAula(Guid idColaborador)
+        {
+            if (_repository.Excluir(idColaborador))
+            {
+                return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new { message = "Aula excluída com sucesso." }));
+            }
+
+            return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao excluir aula." }));
         }
 
         private string GetUserCPFFromClaims()
