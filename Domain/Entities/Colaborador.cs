@@ -17,7 +17,6 @@ namespace Domain.Entities
 
             Nome = nome.Trim();
             Email = email.Trim().ToLower();
-            //Senha = senha.Trim().ToLower();
             Senha = Criptografia.EncriptarSha1(senha);
         }
 

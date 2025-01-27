@@ -140,11 +140,6 @@ namespace Infrastructure.Repository
             }
         }
 
-
-
-
-
-        // Método para cancelar a inscrição do colaborador
         public bool CancelarInscricao(Guid inscricaoId)
         {
             try
@@ -158,7 +153,7 @@ namespace Infrastructure.Repository
 
                     var resultado = db.Execute(query, new { IdInscricao = inscricaoId });
 
-                    return resultado > 0; // Retorna verdadeiro se a inscrição foi cancelada
+                    return resultado > 0;
                 }
             }
             catch (Exception ex)
@@ -167,28 +162,6 @@ namespace Infrastructure.Repository
             }
         }
 
-        // Método para listar todas as inscrições de um colaborador
-        //public IEnumerable<Inscricao> ListarInscricoesPorColaborador(Guid idColaborador)
-        //{
-        //    try
-        //    {
-        //        using (var db = OpenConnection())
-        //        {
-        //            var query = $@"
-        //            SELECT i.IdInscricao, i.IdColaborador, i.IdAula, i.IdHorario, i.DataInicio, i.DataFim, i.Status
-        //            FROM Inscricao i
-        //            WHERE i.IdColaborador = @ColaboradorId;";
-
-        //            return db.Query<Inscricao>(query, new { IdColaborador = idColaborador });
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception("Erro ao listar as inscrições do colaborador.", ex);
-        //    }
-        //}
-
-        // Método para verificar a disponibilidade de um horário
         public bool VerificarDisponibilidadeHorario(Guid horarioId)
         {
             try
@@ -211,7 +184,6 @@ namespace Infrastructure.Repository
             }
         }
 
-        // Método para verificar se uma inscrição já existe
         public bool VerificarInscricaoExistente(Guid colaboradorId, Guid aulaId, Guid horarioId)
         {
             try

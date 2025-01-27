@@ -79,33 +79,6 @@ namespace Infrastructure.Repository
             }
         }
 
-        //public bool Inserir(AulaCommand aula)
-        //{
-        //    try
-        //    {
-        //        using (var db = OpenConnection())
-        //        {
-        //            var query = @"
-        //                        INSERT INTO Aula (IdAula, Nome, Descricao)
-        //                        VALUES (@IdAula, @Nome, @Descricao);
-        //                    ";
-
-        //            db.Execute(query, new
-        //            {
-        //                IdAula = entity.IdAula,
-        //                Nome = entity.Nome,
-        //                Descricao = entity.Descricao
-        //            });
-
-        //            return true;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception("Erro ao inserir a aula.", ex);
-        //    }
-        //}
-
         public bool Inserir(Aula entity)
         {
             try

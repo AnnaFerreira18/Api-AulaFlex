@@ -15,7 +15,6 @@ namespace Domain.Repositories
 
         bool RecuperarSenha(string email, string senhaGerada);
 
-        //bool VerificaRecuperacaoSenha(string email);
 
         bool VerificaSenha(Guid IdColaborador, string senhaAtual);
 

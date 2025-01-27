@@ -47,8 +47,6 @@ namespace Infrastructure.Repository
             }
         }
 
-
-
         public IEnumerable<Colaborador> ListarTodos()
         {
             try
@@ -189,7 +187,6 @@ namespace Infrastructure.Repository
             {
                 using (var db = OpenConnection())
                 {
-                    //var asdsad = Criptografia.EncriptarSha1(obj.NovaSenha);
 
                     var query = $@" UPDATE  Colaborador
                                     SET     Senha = '{Criptografia.EncriptarSha1(senha)}'
@@ -208,7 +205,6 @@ namespace Infrastructure.Repository
 
         public bool VerificaSenha(Guid IdColaborador, string senhaAtual)
         {
-            //if (((IDictionary<string, object>)obj).ContainsKey("IdEntidade"));
 
             try
             {
@@ -244,7 +240,6 @@ namespace Infrastructure.Repository
                 var senhaCriptografada = Criptografia.EncriptarSha1(senhaGerada);
                 using (var db = OpenConnection())
                 {
-                    //var asdsad = Criptografia.EncriptarSha1(obj.NovaSenha);
 
                     var query = $@" UPDATE Colaborador
                                     SET Senha = @SenhaCriptografada

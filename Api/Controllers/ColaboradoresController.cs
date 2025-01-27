@@ -6,205 +6,236 @@ using Infrastructure.Transaction;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
-using System.Web.Http.Description;
 using ApplicationService.Commands;
+using Api.Acesso;
+using System.Text;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http.Description;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
     public class ColaboradoresController : BaseController
     {
         private readonly IColaborador _repository;
+        private readonly IConfiguration _configuration;
         public ColaboradoresController(IUnitOfWork uow, IColaborador repository, IConfiguration configuration) : base(uow)
         {
             _configuration = configuration;
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        private readonly IConfiguration _configuration;
-
-
         [HttpGet]
         [Route("checarEmailDuplicado/{email}")]
-        [ResponseType(typeof(bool))]
-        public bool ChecarEmailDuplicado(string email)
+        [Authorize]
+        public IActionResult ChecarEmailDuplicado(string email)
         {
             bool result = _repository.ChecarEmailDuplicado(email);
-            return result;
+            return new OkObjectResult(result) { StatusCode = 200 };
         }
 
         [HttpGet]
-        [Route("candidato")]
-        [ResponseType(typeof(IEnumerable<Colaborador>))]
-        public IEnumerable<QueryListarColaboradores> Listar()
+        [Route("listarColaboradores")]
+        [Authorize]
+        public IActionResult Listar()
         {
-            return _repository.ListarTodosColaboradores();
+            var colaboradores = _repository.ListarTodosColaboradores();
+
+            if (colaboradores == null || !colaboradores.Any())
+            {
+                return new NotFoundObjectResult(new { message = "Nenhum colaborador encontrado." }) { StatusCode = 404 };
+            }
+
+            return new OkObjectResult(colaboradores) { StatusCode = 200 };
         }
 
         [HttpPost]
-        [Route("api/v2/colaborador")]
-        [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> PostColaborador([FromBody] ColaboradorCommand command)
+        [Route("colaborador/criarConta")]
+        [Authorize]
+        public IActionResult PostColaborador([FromBody] ColaboradorCommand command)
         {
-            var statusEmail = false;
-
             try
             {
-                // Validação de entrada
                 if (command == null || string.IsNullOrWhiteSpace(command.Email))
                 {
-                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "E-mail é obrigatório." }));
+                    return new BadRequestObjectResult(new { message = "E-mail é obrigatório." }) { StatusCode = 400 };
                 }
 
-                // Mapeamento de ColaboradorCommand para Colaborador
                 var colaborador = new Colaborador
                 {
-                    IdColaborador = command.IdColaborador, 
+                    IdColaborador = command.IdColaborador,
                     Nome = command.Nome,
                     Email = command.Email,
                     Senha = Criptografia.EncriptarSha1(command.Senha)
                 };
 
-                // Inserção do colaborador
                 var colaboradorCriado = _repository.Inserir(colaborador);
 
                 if (colaboradorCriado)
                 {
-                    var chave = Criptografia.EncriptarSha1(command.Email.Trim());
-                    var assunto = "[SEST SENAT][Sistema Emprega Transporte] Confirmação de cadastro";
-                    var urlApp = _configuration["BaseUrlApp"];
-                    var link = $"{urlApp}/colaborador/confirmar-cadastro/{command.Email}/{chave}";
-                    var textoEmail = $@"<p>Confirme seu cadastro no Emprega Transporte através do link abaixo:</p>
-                                <p><a href=""{link}"">{link}</a></p>";
+                    var assunto = "[AulaFlex] Confirmação de cadastro";
+
+                    var textoEmail = $@"
+                    <p>Olá {command.Nome},</p>
+                    <p>Seu cadastro foi realizado com sucesso no sistema AulaFlex!</p>
+                    <p>Atenciosamente,</p>
+                    <p>Anna.</p>";
 
                     IEnumerable<string> emails = new[] { command.Email };
+                    bool statusEmail = Email.Enviar(emails, assunto, textoEmail);
 
-                    // Enviar e-mail
-                    if (Email.Enviar(emails, assunto, textoEmail))
-                        statusEmail = true;
-
-                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.Created, new { message = "Colaborador cadastrado com sucesso.", statusEmail }));
+                    return new OkObjectResult(new { message = "Colaborador cadastrado com sucesso." }) { StatusCode = 200 };
                 }
 
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao cadastrar colaborador." }));
+                return new BadRequestObjectResult(new { message = "Erro ao cadastrar colaborador." }) { StatusCode = 400 };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Erro interno no servidor.", details = ex.Message }));
+                return new StatusCodeResult(500);
             }
         }
 
 
         [HttpPost]
-        [Route("api/v2/colaborador/reenviarEmail")]
-        [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> ReenviarEmailColaborador([FromBody] ColaboradorCommand command)
+        [Route("colaborador/enviarEmailRedefinirSenha")]
+        [Authorize]
+        public IActionResult EnviarEmailRedefinirSenha([FromBody] LoginOuSenhaCommand command)
         {
             try
             {
-                // Validar entrada
                 if (string.IsNullOrWhiteSpace(command.Email))
                 {
-                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "E-mail é obrigatório." }));
+                    return new BadRequestObjectResult(new { message = "E-mail é obrigatório." }) { StatusCode = 400 };
                 }
 
+                // Criptografa o e-mail para gerar um token de redefinição único
                 var chave = Criptografia.EncriptarSha1($"{command.Email.Trim()}");
-                var assunto = "[SEST SENAT][Sistema Emprega Transporte] Confirmação de cadastro";
 
-                // Acessando a configuração do BaseUrlApp usando _configuration
+                // Define o assunto do e-mail
+                var assunto = "[AulaFlex] Redefinição de Senha";
+
+                // Obtém a URL da aplicação para incluir no link
                 var urlApp = _configuration["BaseUrlApp"];
-                var link = $"{urlApp}/colaborador/confirmar-cadastro/{command.Email}/{chave}";
-                var textoEmail = $@"<p>Confirme seu cadastro no Emprega Transporte através do link abaixo:</p>
-                            <p><a href=""{link}"">{link}</a></p>";
 
-                // Criando lista de e-mails com o e-mail do comando
+                // Gera o link para a página de redefinição de senha
+                var link = $"{urlApp}/colaborador/redefinir-senha/{command.Email}/{chave}";
+
+                // Texto do e-mail com o link para redefinição de senha
+                var textoEmail = $@"
+                <p>Olá,</p>
+                <p>Recebemos uma solicitação de redefinição de senha para o seu e-mail. Se você não fez essa solicitação, pode ignorar este e-mail.</p>
+                <p>Para redefinir sua senha, clique no link abaixo:</p>
+                <p><a href=""{link}"">{link}</a></p>
+                <p>Atenciosamente,</p>
+                <p>Equipe</p>";
+
+                // Envia o e-mail
                 IEnumerable<string> emails = new[] { command.Email };
-
-                // Enviar e-mail
                 bool statusEmail = Email.Enviar(emails, assunto, textoEmail);
 
-                // Retornar resposta
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new { message = "E-mail enviado com sucesso.", statusEmail }));
+                // Verifica se o e-mail foi enviado com sucesso
+                if (statusEmail)
+                {
+                    return new OkObjectResult(new { message = "E-mail de redefinição de senha enviado com sucesso." }) { StatusCode = 200 };
+                }
+                else
+                {
+                    return new BadRequestObjectResult(new { message = "Erro ao enviar e-mail de redefinição de senha." }) { StatusCode = 500 };
+                }
             }
             catch (Exception ex)
             {
-                // Tratar erro e retornar resposta adequada
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Erro interno no servidor.", details = ex.Message }));
+                // Retorna erro interno em caso de falha inesperada
+                return new StatusCodeResult(500);
             }
         }
-
 
 
         [HttpPut]
-        [Route("api/v2/colaborador/alterarSenha")]
-        [ResponseType(typeof(Task<HttpResponseMessage>))]
-        public Task<HttpResponseMessage> AlterarSenhaColaborador([FromBody] LoginOuSenhaCommand command)
+        [Route("colaborador/redefinirSenha/{email}/{token}")]
+        [Authorize]
+        public IActionResult RedefinirSenha(string email, string token, [FromBody] LoginOuSenhaCommand command)
         {
             try
             {
-                // Validação de entrada
-                if (string.IsNullOrWhiteSpace(command.Email) || string.IsNullOrWhiteSpace(command.Senha))
+                // Criptografa o e-mail novamente para gerar o token correspondente
+                var chaveCriptografada = Criptografia.EncriptarSha1($"{email.Trim()}");
+
+                // Verifica se o token recebido é igual ao token criptografado
+                if (token != chaveCriptografada)
                 {
-                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "E-mail e Nova Senha são obrigatórios." }));
+                    return new BadRequestObjectResult(new { message = "Token inválido ou expirado." }) { StatusCode = 400 };
                 }
 
-                // Atualizar senha no banco de dados (simule a lógica no repositório)
-                var senhaAtualizada = _repository.AlterarSenha(command.Email, command.Senha);
-
-                if (senhaAtualizada)
+                // Verifica se a nova senha foi fornecida
+                if (string.IsNullOrWhiteSpace(command.Senha))
                 {
-                    return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new { message = "Senha alterada com sucesso." }));
+                    return new BadRequestObjectResult(new { message = "Nova senha é obrigatória." }) { StatusCode = 400 };
                 }
 
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao alterar a senha. Verifique os dados enviados." }));
+                // Altera a senha do usuário no banco de dados
+                var senhaAlterada = _repository.AlterarSenha(email, command.Senha);
+
+                if (senhaAlterada)
+                {
+                    return new OkObjectResult(new { message = "Senha alterada com sucesso." }) { StatusCode = 200 };
+                }
+
+                return new BadRequestObjectResult(new { message = "Erro ao alterar a senha." }) { StatusCode = 400 };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.InternalServerError, new { message = "Erro interno no servidor.", details = ex.Message }));
+                return new StatusCodeResult(500);
             }
         }
 
+
+
         [HttpPost]
-        [Route("api/v1/candidato/login")]
-        [ResponseType(typeof(Colaborador))]
-        public Colaborador PostLogin([FromBody] LoginOuSenhaCommand command)
+        [Route("colaborador/login")]
+        public ActionResult PostLogin([FromBody] LoginOuSenhaCommand command)
         {
-            return _repository.RealizarLoginComEmail(command.Email, command.Senha);
+            var colaborador = _repository.RealizarLoginComEmail(command.Email, command.Senha);
+
+            if (colaborador == null)
+            {
+                // Retorna 401 Unauthorized com a mensagem personalizada
+                return new UnauthorizedObjectResult(new { message = "Login ou senha inválidos." }) { StatusCode = 401 };
+            }
+
+            var token = TokenService.GenerateJwtToken(colaborador);
+
+            // Retorna 200 OK com o token gerado
+            return new OkObjectResult(new { token }) { StatusCode = 200 };
         }
+
 
 
         [HttpGet]
-        [Route("api/v1/candidato/totalItens")]
-        [ResponseType(typeof(int))]
-        public int GetTotalItens()
+        [Route("colaborador/totalItens")]
+        [Authorize]
+        public IActionResult GetTotalItens()
         {
-            return _repository.TotalDeItens();
+            int totalItens = _repository.TotalDeItens();
+            return new OkObjectResult(totalItens) { StatusCode = 200 };
         }
+
 
         [HttpDelete]
-        [Route("ExcluirColaborador")]
-        [ResponseType(typeof(HttpResponseMessage))]
-        public Task<HttpResponseMessage> ExcluirAula(Guid idColaborador)
+        [Route("excluirColaborador")]
+        [Authorize]
+        public IActionResult ExcluirColaborador(Guid idColaborador)
         {
-            if (_repository.Excluir(idColaborador))
+            var excluido = _repository.Excluir(idColaborador);
+
+            if (excluido)
             {
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new { message = "Aula excluída com sucesso." }));
+                return new OkObjectResult(new { message = "Colaborador excluído com sucesso." }) { StatusCode = 200 };
             }
 
-            return Task.FromResult(Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Erro ao excluir aula." }));
+            return new BadRequestObjectResult(new { message = "Erro ao excluir colaborador." }) { StatusCode = 400 };
         }
 
-        private string GetUserCPFFromClaims()
-        {
-            var identity = (ClaimsIdentity)User.Identity;
-            var userCpfClaim = identity.Claims.FirstOrDefault(c => c.Type == "Cpf");
-
-            if (userCpfClaim != null && !string.IsNullOrWhiteSpace(userCpfClaim.Value))
-            {
-                return userCpfClaim.Value;
-            }
-
-            // Se a claim não puder ser encontrada ou o valor for inválido
-            throw new InvalidOperationException("CPF do usuário não encontrado ou inválido nas claims.");
-        }
     }
 }
