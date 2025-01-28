@@ -18,9 +18,9 @@ namespace Api.Controllers
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        [Authorize]
+
         [HttpGet]
-        [Route("listarHorarios/{idAula}")]
+        [Route("listarHorarios/")]
         [ResponseType(typeof(IEnumerable<dynamic>))]
         public IActionResult ListarHorariosPorAula(Guid aulaId)
         {

@@ -21,7 +21,7 @@ namespace Api.Controllers
 
         [HttpGet]
         [Route("listarAulas")]
-        [Authorize]
+
         public IActionResult ListarAulas()
         {
             var aulas = _repository.ListarTodasAulas();

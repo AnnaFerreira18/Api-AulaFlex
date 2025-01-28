@@ -6,16 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Domain.Repositories;
 using System.Text;
 using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.IdentityModel.Tokens;                                                                                             
-
-//using Autofac;
-//using Autofac.Integration.WebApi;
-//using Newtonsoft.Json;
-//using Newtonsoft.Json.Serialization;
-//using Microsoft.Owin.Security.OAuth;
-//using Microsoft.IdentityModel.Tokens;
-//using Microsoft.Owin.Security.Jwt;
-//using Microsoft.Owin.Security;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Facebook;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,14 +58,25 @@ builder.Services.AddAuthentication("Bearer")
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
     {
-        options.ClientId = "SEU_CLIENT_ID_GOOGLE";
-        options.ClientSecret = "SEU_CLIENT_SECRET_GOOGLE";
+        options.ClientId = "644409398312-dc8lc7ohd37uks7dov7kkr3pfdgueuqn.apps.googleusercontent.com";
+        options.ClientSecret = "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";
+        // options.CallbackPath = "/login-google";
     })
     .AddFacebook(options =>
     {
-        options.AppId = "SEU_APP_ID_FACEBOOK";
-        options.AppSecret = "SEU_APP_SECRET_FACEBOOK";
+        options.AppId = "1042478310977057";
+        options.AppSecret = "9d53869d661f8cf15521f5b245ed31b7";
+        //options.CallbackPath = "/login-facebook";
     });
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
+})
+.AddCookie();
 
 
 builder.Services.AddControllers();
@@ -95,15 +100,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
-//OAuthAuthorizationServerOptions oAuthServerOptions = new OAuthAuthorizationServerOptions()
-//{
-//    AllowInsecureHttp = true,//Permite conexão não seguras http
-//    TokenEndpointPath = new PathString("/api/v1/security/token"),//Local de onde o token vai ser disponibilizado
-//    AccessTokenExpireTimeSpan = TimeSpan.FromHours(2),
-//};
-
-//// Geraçaõ do Token
-//app.UseOAuthAuthorizationServer(oAuthServerOptions);
-//app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());

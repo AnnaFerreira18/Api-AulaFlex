@@ -13,6 +13,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http.Description;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Api.Controllers
 {
@@ -20,7 +24,8 @@ namespace Api.Controllers
     {
         private readonly IColaborador _repository;
         private readonly IConfiguration _configuration;
-        public ColaboradoresController(IUnitOfWork uow, IColaborador repository, IConfiguration configuration) : base(uow)
+        public ColaboradoresController(IUnitOfWork uow, IColaborador repository, IConfiguration configuration)
+            : base(uow)
         {
             _configuration = configuration;
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -37,7 +42,6 @@ namespace Api.Controllers
 
         [HttpGet]
         [Route("listarColaboradores")]
-        [Authorize]
         public IActionResult Listar()
         {
             var colaboradores = _repository.ListarTodosColaboradores();
@@ -224,7 +228,6 @@ namespace Api.Controllers
 
         [HttpDelete]
         [Route("excluirColaborador")]
-        [Authorize]
         public IActionResult ExcluirColaborador(Guid idColaborador)
         {
             var excluido = _repository.Excluir(idColaborador);
