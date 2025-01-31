@@ -40,6 +40,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("CorsPolicy", builder => builder.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader());
+//});
+
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {
@@ -94,6 +99,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseCors("AllowAll");
+
+//app.UseCors("CorsPolicy");
 
 app.UseAuthorization();
 
