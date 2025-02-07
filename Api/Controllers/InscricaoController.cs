@@ -17,7 +17,6 @@ namespace Api.Controllers
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        [Authorize]
         [HttpGet]
         [Route("inscricoes/{idColaborador}")]
         public IActionResult ListarInscricoesPorColaborador(Guid idColaborador)
@@ -35,7 +34,6 @@ namespace Api.Controllers
             return new ObjectResult(inscricoes) { StatusCode = 200 };
         }
 
-        [Authorize]
         [HttpGet]
         [Route("categoriasAulas")]
         public IActionResult TotalInscricoesPorCategoria()
@@ -53,7 +51,6 @@ namespace Api.Controllers
             return new ObjectResult(categorias) { StatusCode = 200 };
         }
 
-        [Authorize]
         [HttpGet]
         [Route("verificarDisponibilidade/{aulaId}/{horarioId}")]
         public IActionResult VerificarDisponibilidade(Guid aulaId, Guid horarioId)
@@ -68,18 +65,18 @@ namespace Api.Controllers
             return new ObjectResult(new { message = "Horário indisponível." }) { StatusCode = 400 };
         }
 
-        [Authorize]
+
         [HttpPost]
         [Route("inscrever/{idColaborador}/{idAula}/{idHorario}")]
         public IActionResult InscreverColaborador([FromBody] InscricaoCommand command)
         {
-            if (command == null)
-            {
-                return new ObjectResult(new { message = "Os dados da inscrição não podem ser nulos." })
-                {
-                    StatusCode = 400
-                };
-            }
+            //if (command == null)
+            //{
+            //    return new ObjectResult(new { message = "Os dados da inscrição não podem ser nulos." })
+            //    {
+            //        StatusCode = 400
+            //    };
+            //}
 
             try
             {
@@ -109,7 +106,6 @@ namespace Api.Controllers
             }
         }
 
-        [Authorize]
         [HttpDelete]
         [Route("cancelar/{inscricaoId}")]
         public IActionResult CancelarInscricao(Guid inscricaoId)
@@ -122,7 +118,6 @@ namespace Api.Controllers
             return new ObjectResult(new { message = "Erro ao cancelar a inscrição." }) { StatusCode = 400 };
         }
 
-        [Authorize]
         [HttpGet]
         [Route("verificar/{colaboradorId}/{aulaId}/{horarioId}")]
         public IActionResult VerificarInscricaoExistente(Guid colaboradorId, Guid aulaId, Guid horarioId)

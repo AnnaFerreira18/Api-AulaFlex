@@ -60,7 +60,7 @@ namespace Infrastructure.Repository
                 using (var db = OpenConnection())
                 {
                     var query = @"
-                    SELECT I.IdInscricao AS InscricaoId, A.Nome AS Aula, H.DiaSemana, H.Hora, 
+                    SELECT I.IdInscricao, A.Nome AS Aula, A.Categoria, H.DiaSemana, H.Hora, 
                            I.DataInicio, I.DataFim, I.Status
                     FROM Inscricao I
                     JOIN Colaborador C ON I.IdColaborador = C.IdColaborador
@@ -196,7 +196,7 @@ namespace Infrastructure.Repository
                     WHERE i.IdColaborador = @ColaboradorId 
                     AND i.IdAula = @AulaId 
                     AND i.IdHorario = @HorarioId
-                    AND i.Status = 'Ativa';";
+                    AND i.Status = 'Ativo';";
 
                     return db.Query<int>(query, new { ColaboradorId = colaboradorId, AulaId = aulaId, HorarioId = horarioId }).Any();
                 }

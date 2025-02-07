@@ -74,14 +74,14 @@ builder.Services.AddAuthentication()
         //options.CallbackPath = "/login-facebook";
     });
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
-})
-.AddCookie();
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
+//})
+//.AddCookie();
 
 
 builder.Services.AddControllers();

@@ -33,7 +33,6 @@ namespace Api.Controllers
 
         [HttpGet]
         [Route("checarEmailDuplicado/{email}")]
-        [Authorize]
         public IActionResult ChecarEmailDuplicado(string email)
         {
             bool result = _repository.ChecarEmailDuplicado(email);
@@ -56,7 +55,6 @@ namespace Api.Controllers
 
         [HttpPost]
         [Route("colaborador/criarConta")]
-        [Authorize]
         public IActionResult PostColaborador([FromBody] ColaboradorCommand command)
         {
             try
@@ -103,7 +101,6 @@ namespace Api.Controllers
 
         [HttpPost]
         [Route("colaborador/enviarEmailRedefinirSenha")]
-        [Authorize]
         public IActionResult EnviarEmailRedefinirSenha([FromBody] LoginOuSenhaCommand command)
         {
             try
@@ -120,10 +117,9 @@ namespace Api.Controllers
                 var assunto = "[AulaFlex] Redefinição de Senha";
 
                 // Obtém a URL da aplicação para incluir no link
-                var urlApp = _configuration["BaseUrlApp"];
 
                 // Gera o link para a página de redefinição de senha
-                var link = $"{urlApp}/colaborador/redefinir-senha/{command.Email}/{chave}";
+                var link = $"http://localhost:4200/novaSenha/{command.Email}/{chave}"; // URL fixa para o frontend
 
                 // Texto do e-mail com o link para redefinição de senha
                 var textoEmail = $@"
@@ -158,7 +154,6 @@ namespace Api.Controllers
 
         [HttpPut]
         [Route("colaborador/redefinirSenha/{email}/{token}")]
-        [Authorize]
         public IActionResult RedefinirSenha(string email, string token, [FromBody] LoginOuSenhaCommand command)
         {
             try
@@ -211,7 +206,7 @@ namespace Api.Controllers
             var token = TokenService.GenerateJwtToken(colaborador);
 
             // Retorna 200 OK com o token gerado
-            return new OkObjectResult(new { token }) { StatusCode = 200 };
+            return new OkObjectResult(new { token, colaborador }) { StatusCode = 200 };
         }
 
 
