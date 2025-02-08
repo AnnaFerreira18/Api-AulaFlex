@@ -117,9 +117,8 @@ namespace Api.Controllers
                 var assunto = "[AulaFlex] Redefinição de Senha";
 
                 // Gera o link para a página de redefinição de senha
-                var link = $"http://localhost:4200/novaSenha/{command.Email}/{chave}"; // URL fixa para o frontend
+                var link = $"http://localhost:4200/novaSenha/{command.Email}/{chave}";
 
-                // Texto do e-mail com o link para redefinição de senha
                 var textoEmail = $@"
                 <p>Olá,</p>
                 <p>Recebemos uma solicitação de redefinição de senha para o seu e-mail. Se você não fez essa solicitação, pode ignorar este e-mail.</p>
@@ -204,7 +203,7 @@ namespace Api.Controllers
             var token = TokenService.GenerateJwtToken(colaborador);
 
             // Retorna 200 OK com o token gerado
-            return new OkObjectResult(new { token, colaborador }) { StatusCode = 200 };
+            return new OkObjectResult(new { token, colaborador.IdColaborador }) { StatusCode = 200 };
         }
 
 
@@ -216,6 +215,14 @@ namespace Api.Controllers
         {
             int totalItens = _repository.TotalDeItens();
             return new OkObjectResult(totalItens) { StatusCode = 200 };
+        }
+
+        [HttpGet]
+        [Route("colaborador/inscricoes")]
+        public IActionResult Colaborador(Guid idColaborador)
+        {
+            var colaborador = _repository.ColaboradorInscricoes(idColaborador);
+            return new OkObjectResult(colaborador) { StatusCode = 200 };
         }
 
 

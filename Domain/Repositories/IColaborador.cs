@@ -20,5 +20,7 @@ namespace Domain.Repositories
 
         bool AlterarEmail(Guid idColaborador, string novoEmail);
 
+        IEnumerable<QueryColaborador> ColaboradorInscricoes(Guid idColaborador);
+
     }
 }

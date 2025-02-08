@@ -149,7 +149,7 @@ namespace Infrastructure.Repository
                     var query = $@"
                     UPDATE Inscricao
                     SET Status = 'Cancelada', DataFim = GETDATE()
-                    WHERE IdInscricao = @IdInscricao AND Status = 'Ativa';";
+                    WHERE IdInscricao = @IdInscricao AND Status = 'Ativo';";
 
                     var resultado = db.Execute(query, new { IdInscricao = inscricaoId });
 

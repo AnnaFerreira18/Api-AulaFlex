@@ -8,6 +8,7 @@ using System.Data;
 using Domain.QueryModels;
 using Dapper;
 using System.Runtime.InteropServices;
+using System.Data.SqlTypes;
 
 namespace Infrastructure.Repository
 {
@@ -177,6 +178,28 @@ namespace Infrastructure.Repository
             catch (Exception ex)
             {
                 throw new Exception("Erro ao checar cpf duplicado.", ex);
+            }
+        }
+
+        public IEnumerable <QueryColaborador> ColaboradorInscricoes(Guid idColaborador)
+        {
+            try
+            {
+                using (var db = OpenConnection())
+                {
+                    var query = $@" Select c.IdColaborador, c.Email, i.IdInscricao, h.IdHorario, h.DiaSemana, h.Hora
+                                    from Inscricao i
+                                    join Colaborador c on i.IdColaborador = c.IdColaborador
+                                    join Horario h on i.IdHorario = h.IdHorario
+                                    Where c.IdColaborador = '{idColaborador}';";
+
+                    return db.Query<QueryColaborador>(query);
+                }   
+
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 
