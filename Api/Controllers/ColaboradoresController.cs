@@ -116,8 +116,6 @@ namespace Api.Controllers
                 // Define o assunto do e-mail
                 var assunto = "[AulaFlex] Redefinição de Senha";
 
-                // Obtém a URL da aplicação para incluir no link
-
                 // Gera o link para a página de redefinição de senha
                 var link = $"http://localhost:4200/novaSenha/{command.Email}/{chave}"; // URL fixa para o frontend
 
