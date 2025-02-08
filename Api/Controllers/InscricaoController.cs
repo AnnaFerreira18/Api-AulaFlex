@@ -70,13 +70,13 @@ namespace Api.Controllers
         [Route("inscrever/{idColaborador}/{idAula}/{idHorario}")]
         public IActionResult InscreverColaborador([FromBody] InscricaoCommand command)
         {
-            //if (command == null)
-            //{
-            //    return new ObjectResult(new { message = "Os dados da inscrição não podem ser nulos." })
-            //    {
-            //        StatusCode = 400
-            //    };
-            //}
+            if (command == null)
+            {
+                return new ObjectResult(new { message = "Os dados da inscrição não podem ser nulos." })
+                {
+                    StatusCode = 400
+                };
+            }
 
             try
             {
@@ -127,6 +127,29 @@ namespace Api.Controllers
             return new ObjectResult(existe) { StatusCode = 200 };
         }
 
+
+        [HttpPost]
+        [Route("alterar-inscricao/{idAula}/{idHorario}")]
+        public IActionResult AlterarInscricao(Guid idAula, Guid idHorario, [FromQuery] bool realizarInscricao)
+        {
+            try
+            {
+                var sucesso = _repository.AlterarVagas(idAula, idHorario, realizarInscricao);
+
+                if (sucesso)
+                {
+                    return new OkObjectResult(new { message = realizarInscricao ? "Inscrição realizada com sucesso." : "Inscrição cancelada com sucesso." }) { StatusCode = 200 };
+                }
+                else
+                {
+                    return new OkObjectResult(new { message = "Erro ao alterar." }) { StatusCode = 400 };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OkObjectResult(new { message = "Erro ao realizar operação." }) { StatusCode = 500 };
+            }
+        }
     }
 }
 

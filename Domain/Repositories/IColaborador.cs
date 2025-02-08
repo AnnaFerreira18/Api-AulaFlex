@@ -22,5 +22,7 @@ namespace Domain.Repositories
 
         IEnumerable<QueryColaborador> ColaboradorInscricoes(Guid idColaborador);
 
+
+
     }
 }

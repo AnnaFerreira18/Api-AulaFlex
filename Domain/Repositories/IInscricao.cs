@@ -19,5 +19,6 @@ namespace Domain.Repositories
         bool VerificarDisponibilidadeHorario(Guid horarioId);
 
         bool VerificarInscricaoExistente(Guid colaboradorId, Guid aulaId, Guid horarioId);
+        bool AlterarVagas(Guid idAula, Guid idHorario, bool realizarInscricao);
     }
 }

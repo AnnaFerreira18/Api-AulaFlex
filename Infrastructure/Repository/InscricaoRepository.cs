@@ -61,7 +61,7 @@ namespace Infrastructure.Repository
                 {
                     var query = @"
                     SELECT I.IdInscricao, A.Nome AS Aula, A.Categoria, H.DiaSemana, H.Hora, 
-                           I.DataInicio, I.DataFim, I.Status
+                           I.DataInicio, I.DataFim, I.Status, A.IdAula, H.IdHorario
                     FROM Inscricao I
                     JOIN Colaborador C ON I.IdColaborador = C.IdColaborador
                     JOIN Aula A ON I.IdAula = A.IdAula
@@ -207,5 +207,30 @@ namespace Infrastructure.Repository
             }
         }
 
+
+        public bool AlterarVagas(Guid idAula, Guid idHorario, bool realizarInscricao)
+        {
+            try
+            {
+                using (var db = OpenConnection())
+                {
+                    int ajuste = realizarInscricao ? -1 : 1; 
+
+                    string query = @"
+                    UPDATE Horario
+                    SET VagasDisponiveis = VagasDisponiveis + @Ajuste
+                    WHERE IdAula = @IdAula AND IdHorario = @IdHorario
+                    AND VagasDisponiveis + @Ajuste >= 0;"; 
+
+                    var result = db.Execute(query, new { IdAula = idAula, IdHorario = idHorario, Ajuste = ajuste });
+
+                    return result > 0; 
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao alterar as vagas.", ex);
+            }
+        }
     }
 }
