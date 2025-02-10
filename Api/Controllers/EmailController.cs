@@ -14,6 +14,7 @@ namespace Api.Controllers
         {
 
         }
+
         [HttpPost]
         [Route("email")]
         public IActionResult Post([FromBody] EnviarEmailCommand command)

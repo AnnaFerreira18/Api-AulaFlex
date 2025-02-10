@@ -39,6 +39,7 @@ namespace Api.Controllers
             return new OkObjectResult(result) { StatusCode = 200 };
         }
 
+        [Authorize]
         [HttpGet]
         [Route("listarColaboradores")]
         public IActionResult Listar()

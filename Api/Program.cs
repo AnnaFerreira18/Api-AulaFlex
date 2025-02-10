@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +23,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen( option =>
+{
+    option.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "json"
+    });
+    option.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme()
+            {
+                Reference = new OpenApiReference()
+                {
+                    Type =  ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string [] {}
+        }
+    });
+});
 
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -35,56 +61,54 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+               .AllowAnyHeader()
+               .AllowAnyMethod();
     });
 });
 
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("CorsPolicy", builder => builder.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader());
-//});
-
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(opptions =>
+{
+    opptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}
+).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+        ValidateIssuer = true,
+        ValidateAudience = false,  // Desabilita a validação de audience
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "sua-api",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("36B7247D-535D-4D46-8AA1-EBC5A01A696B")),
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
-
-builder.Services.AddAuthentication()
-    .AddGoogle(options =>
-    {
-        options.ClientId = "644409398312-dc8lc7ohd37uks7dov7kkr3pfdgueuqn.apps.googleusercontent.com";
-        options.ClientSecret = "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";
-        // options.CallbackPath = "/login-google";
-    })
-    .AddFacebook(options =>
-    {
-        options.AppId = "1042478310977057";
-        options.AppSecret = "9d53869d661f8cf15521f5b245ed31b7";
-        //options.CallbackPath = "/login-facebook";
-    });
 
 //builder.Services.AddAuthentication(options =>
 //{
-//    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-//    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 //    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 //    options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
 //})
-//.AddCookie();
-
+//.AddCookie()
+//.AddGoogle(options =>
+//{
+//    options.ClientId = "644409398312-dc8lc7ohd37uks7dov7kkr3pfdgueuqn.apps.googleusercontent.com";
+//    options.ClientSecret = "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";
+//    options.SaveTokens = true;
+//})
+//.AddFacebook(options =>
+//{
+//    options.AppId = "1042478310977057";
+//    options.AppSecret = "9d53869d661f8cf15521f5b245ed31b7";
+//    options.SaveTokens = true;
+//});
 
 builder.Services.AddControllers();
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -97,12 +121,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseCors("AllowAll");
 
 //app.UseCors("CorsPolicy");
 
-app.UseAuthorization();
+
 
 app.MapControllers();
 

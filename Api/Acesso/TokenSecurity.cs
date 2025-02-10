@@ -22,9 +22,11 @@ namespace Api.Acesso
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(2), // Token expira em 1 hora
+                Expires = DateTime.UtcNow.AddHours(2),
+                Issuer = "sua-api", 
                 SigningCredentials = credentials
             };
+
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
