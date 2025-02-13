@@ -17,6 +17,7 @@ namespace Api.Controllers
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
+        [Authorize]
         [HttpGet]
         [Route("inscricoes/{idColaborador}")]
         public IActionResult ListarInscricoesPorColaborador(Guid idColaborador)
@@ -34,6 +35,7 @@ namespace Api.Controllers
             return new ObjectResult(inscricoes) { StatusCode = 200 };
         }
 
+        [Authorize]
         [HttpGet]
         [Route("categoriasAulas")]
         public IActionResult TotalInscricoesPorCategoria()
@@ -51,6 +53,7 @@ namespace Api.Controllers
             return new ObjectResult(categorias) { StatusCode = 200 };
         }
 
+        [Authorize]
         [HttpGet]
         [Route("verificarDisponibilidade/{aulaId}/{horarioId}")]
         public IActionResult VerificarDisponibilidade(Guid aulaId, Guid horarioId)
@@ -66,6 +69,7 @@ namespace Api.Controllers
         }
 
 
+        [Authorize]
         [HttpPost]
         [Route("inscrever/{idColaborador}/{idAula}/{idHorario}")]
         public IActionResult InscreverColaborador([FromBody] InscricaoCommand command)
@@ -106,6 +110,7 @@ namespace Api.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete]
         [Route("cancelar/{inscricaoId}")]
         public IActionResult CancelarInscricao(Guid inscricaoId)
@@ -126,7 +131,6 @@ namespace Api.Controllers
 
             return new ObjectResult(existe) { StatusCode = 200 };
         }
-
 
         [HttpPost]
         [Route("alterar-inscricao/{idAula}/{idHorario}")]

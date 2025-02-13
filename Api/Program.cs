@@ -66,25 +66,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddAuthentication(opptions =>
-{
-    opptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    opptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}
-).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = false,  // Desabilita a validação de audience
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = "sua-api",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("36B7247D-535D-4D46-8AA1-EBC5A01A696B")),
-        ClockSkew = TimeSpan.Zero
-    };
-});
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
 
 //builder.Services.AddAuthentication(options =>
 //{
@@ -126,8 +122,6 @@ app.UseAuthorization();
 app.UseCors("AllowAll");
 
 //app.UseCors("CorsPolicy");
-
-
 
 app.MapControllers();
 

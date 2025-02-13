@@ -18,7 +18,7 @@ namespace Api.Controllers
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-
+        [Authorize]
         [HttpGet]
         [Route("listarHorarios/")]
         [ResponseType(typeof(IEnumerable<dynamic>))]
@@ -46,7 +46,6 @@ namespace Api.Controllers
 
             try
             {
-                // Mapeamento de HorarioCommand para Horario
                 var horarioEntity = new Horario
                 {
                     IdHorario = horario.IdHorario,
@@ -83,17 +82,15 @@ namespace Api.Controllers
 
             try
             {
-                // Mapeamento de HorarioCommand para Horario (entidade do domínio)
                 var horarioEntity = new Horario
                 {
-                    IdHorario = horarioId, // Usa o ID fornecido na rota
+                    IdHorario = horarioId,
                     DiaSemana = horario.DiaSemana,
                     Hora = horario.Hora,
                     VagasDisponiveis = horario.VagasDisponiveis,
                     IdAula = horario.IdAula
                 };
 
-                // Atualiza o horário no repositório
                 var sucesso = _repository.Atualizar(horarioEntity);
 
                 if (sucesso)

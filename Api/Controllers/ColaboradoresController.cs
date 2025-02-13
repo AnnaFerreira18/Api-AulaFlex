@@ -144,7 +144,6 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                // Retorna erro interno em caso de falha inesperada
                 return new StatusCodeResult(500);
             }
         }
@@ -197,13 +196,11 @@ namespace Api.Controllers
 
             if (colaborador == null)
             {
-                // Retorna 401 Unauthorized com a mensagem personalizada
                 return new UnauthorizedObjectResult(new { message = "Login ou senha inválidos." }) { StatusCode = 401 };
             }
 
             var token = TokenService.GenerateJwtToken(colaborador);
 
-            // Retorna 200 OK com o token gerado
             return new OkObjectResult(new { token, colaborador.IdColaborador }) { StatusCode = 200 };
         }
 
@@ -218,6 +215,7 @@ namespace Api.Controllers
             return new OkObjectResult(totalItens) { StatusCode = 200 };
         }
 
+
         [HttpGet]
         [Route("colaborador/inscricoes")]
         public IActionResult Colaborador(Guid idColaborador)
@@ -226,7 +224,7 @@ namespace Api.Controllers
             return new OkObjectResult(colaborador) { StatusCode = 200 };
         }
 
-
+        [Authorize]
         [HttpDelete]
         [Route("excluirColaborador")]
         public IActionResult ExcluirColaborador(Guid idColaborador)

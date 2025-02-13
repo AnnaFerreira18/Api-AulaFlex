@@ -21,7 +21,7 @@ namespace Api.Controllers
         {
             var statusEmail = false;
 
-            var assunto = "[SEST SENAT][Sistema Emprega Transporte] Dúvida";
+            var assunto = "Dúvida";
             var textoEmail = command.Corpo;
 
             IEnumerable<string> emails = new[] { command.Email };

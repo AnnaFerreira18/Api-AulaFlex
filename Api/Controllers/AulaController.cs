@@ -72,7 +72,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                return new StatusCodeResult(500); // Erro interno no servidor
+                return new StatusCodeResult(500);
             }
         }
 
@@ -108,7 +108,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                return new StatusCodeResult(500); // Erro interno no servidor
+                return new StatusCodeResult(500); 
             }
         }
 

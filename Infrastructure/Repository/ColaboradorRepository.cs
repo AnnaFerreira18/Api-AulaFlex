@@ -281,38 +281,6 @@ namespace Infrastructure.Repository
             }
         }
 
-        //public bool VerificaRecuperacaoSenha(string email)
-        //{
-        //    try
-        //    {
-        //        if (VerificaCandidatoCpf(email))
-        //        {
-        //            using (var db = OpenConnection())
-        //            {
-        //                var query = $@" SELECT COUNT(*)
-        //                            FROM Colaborador                                        
-        //                            WHERE   
-        //                                 Email = LTRIM(RTRIM(LOWER(@Email)));";
-
-        //                if (db.Query<int>(query, new { Email = email }).FirstOrDefault() < 1)
-        //                {
-        //                    throw new Exception();
-        //                }
-
-        //                return true;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            return true;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return false;
-        //    }
-        //}
-
 
         public bool Atualizar(Colaborador entity)
         {
